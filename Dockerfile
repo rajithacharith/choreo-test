@@ -1,25 +1,33 @@
 # Use an official Node.js runtime as the base image
-FROM node:18
+FROM node:18-alpine
 
-# Set the working directory in the container
-WORKDIR /app
+# Build arguments for user/group configurations
+ARG USER=wso2ipk
+ARG USER_ID=10001
+ARG USER_GROUP=wso2
+ARG USER_GROUP_ID=10001
+ARG USER_HOME=/home/${USER}
 
-# Copy the package.json and package-lock.json files to the working directory
+# Create a user group and a user
+RUN addgroup -S -g ${USER_GROUP_ID} ${USER_GROUP} \
+    && adduser -S -D -h ${USER_HOME} -G ${USER_GROUP} -u ${USER_ID} ${USER}
+
+# Create app directory
+WORKDIR ${USER_HOME}
+
+# Set a non-root user
+USER 10001
+
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
 COPY package*.json ./
 
-# Install the application dependencies
-RUN npm install
+RUN npm ci --only=production
 
-# Copy the application code to the working directory
-COPY . .
+# Bundle app source
+COPY --chown=${USER}:${USER_GROUP} . .
 
-RUN mkdir /.npm
-RUN chown -R 10140:0 "/.npm"
-
-USER 10140
-
-# Expose the port that the application will listen on
 EXPOSE 3000
 
-# Set the command to run your application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
