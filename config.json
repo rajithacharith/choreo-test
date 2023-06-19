@@ -1,0 +1,7 @@
+{
+    "clientID": "jXn980tBKKNMuvpXAVyhQfb_I2sa",
+    "clientSecret": "rF0GOTwbZIepdBxn9FOMntvE9aga",
+    "baseUrl": "https://api.asgardeo.io/t/charithrajitha",
+    "appURL": "http://localhost:3000",
+    "scope": ["openid", "profile", "groups", "app_roles"]
+  }
