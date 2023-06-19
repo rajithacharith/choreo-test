@@ -13,6 +13,9 @@ RUN npm install
 # Copy the application code to the working directory
 COPY . .
 
+RUN mkdir /.npm
+RUN chown -R 10140:0 "/.npm"
+
 USER 10140
 
 # Expose the port that the application will listen on
