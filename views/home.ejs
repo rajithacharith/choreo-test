@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="referrer" content="no-referrer" />
+
+    <title>Asgardeo-ExpressJS Sample Application</title>
+
+    <link href="css/home.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+    <div id="root">
+        <div>
+            <div class="title">
+            </div>
+            <div class="content">
+                <% if (authenticateResponse.applicationRoles === 'Admin') { %>
+                   <button class="btn-custom" onclick="">Add Products</button>
+                <% } %>
+                <button class="btn-custom" onclick="">View Products</button>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>

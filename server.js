@@ -1,123 +1,97 @@
-import express from 'express'
-import { createSSRApp } from 'vue'
-// import cookieParser from 'cookie-parser'
-import cookieParser from 'cookie-parser';
-import { renderToString } from 'vue/server-renderer'
-import { AsgardeoExpressClient } from "@asgardeo/auth-express";
-import config from "./config.json" assert { type: "json" };
-import url from "url";
-// import a vue component
-// import home from './components/home.vue';
+const url = require("url");
+const { AsgardeoExpressClient } = require("@asgardeo/auth-express");
+const cookieParser = require("cookie-parser");
+const express = require("express");
+const config = require("./config.json");
 
-AsgardeoExpressClient.getInstance(config);
+const PORT = 3000;
 
 const app = express();
 
-// Use cookie parser in the Express App.
-app.use(cookieParser())
+app.use(cookieParser());
 
-//Initialize Asgardeo Express Client
-const authClient = AsgardeoExpressClient.getInstance(config);
+app.set("view engine", "ejs");
 
-//Define onSignIn method to handle successful sign in
-const onSignIn = (res, response) => {
-  if (response) {
-    res.status(200).send(response);
-  }
-};
+app.use("/", express.static("static"));
+app.use("/home", express.static("static"));
 
-//Define onSignOut method to handle successful sign out
+AsgardeoExpressClient.getInstance(config);
+
+const onSignIn = (res) => {
+  res.redirect("/home");
+}
+
 const onSignOut = (res) => {
-  res.status(200).send("Sign out successful");
-};
+  res.redirect("/");
+}
 
-//Define onError method to handle errors
 const onError = (res, error) => {
-  if(error){
-    res.status(400).send(error);
-  }
+  res.redirect(
+    url.format({
+      pathname: "/",
+      query: {
+        message: error && error.message
+      }
+    })
+  );
+}
+
+app.use(AsgardeoExpressClient.asgardeoExpressAuth(onSignIn, onSignOut, onError));
+
+
+const dataTemplate = {
+  authenticateResponse: null,
+  error: false,
+  errorMessage: "",
+  idToken: null,
+  isAuthenticated: true,
+  isConfigPresent: Boolean(config && config.clientID && config.clientSecret)
 };
 
-//Use the Asgardeo Auth Client
-app.use(
-  AsgardeoExpressClient.asgardeoExpressAuth(onSignIn, onSignOut, onError)
-);
-
-//At this point the default /login and /logout routes should be available.
-//Users can use these two routes for authentication.
-
-//A regular route
-app.get("/", (req, res) => {
-    const app = createSSRApp({
-        data: () => ({ count: 1 }),
-        template: `
-        <div>
-            <h1>Vue SSR Example</h1>
-            <p v-if="count == 1">Count: {{ count }}</p>
-        </div>`
-    })
-
-    renderToString(app).then((html) => {
-        res.send(`
-        <!DOCTYPE html>
-        <html>
-            <head>
-            <title>Vue SSR Example</title>
-            </head>
-            <body>
-            <div id="app">${html}</div>
-            </body>
-        </html>
-        `)
-    })
+app.get("/", async (req, res) => {
+  let data = { ...dataTemplate };
+  data.error = req.query.message ? true : false;
+  data.errorMessage =
+    req.query.message ||
+    "Something went wrong during the authentication process.";
+  res.render("landingPage", data);
 });
 
-//A Protected Route
-
-//Define the callback function to handle unauthenticated requests
 const authCallback = (res, error) => {
-  if(error){
-    res.status(400).send(error);
-  }
-  // Return true to end the flow at the middleware.
+  res.redirect(
+    url.format({
+      pathname: "/",
+      query: {
+        message: error
+      }
+    })
+  );
+
   return true;
 };
 
-//Create a new middleware to protect the route
 const isAuthenticated = AsgardeoExpressClient.protectRoute(authCallback);
 
-app.get("/protected", isAuthenticated, async (req, res) => {
-    const userData = isAuthenticated
-      ? await req.asgardeoAuth.getBasicUserInfo(req.cookies.ASGARDEO_SESSION_ID) : null;
-    
-    // import template in component/home.vue
-    console.log(userData);
+app.get("/home", isAuthenticated, async (req, res) => {
+  const data = { ...dataTemplate };
 
+  try {
+    data.idToken = data.isAuthenticated
+      ? await req.asgardeoAuth.getIDToken(req.cookies.ASGARDEO_SESSION_ID)
+      : null;
 
+    data.authenticateResponse = data.isAuthenticated
+      ? await req.asgardeoAuth.getBasicUserInfo(req.cookies.ASGARDEO_SESSION_ID)
+      : {};
 
-    const app = createSSRApp({
-        data: () => ({ userData: userData }),
-        template: `
-        <div>
-            <p v-if="userData.applicationRoles === 'admin'">Welcome Admin {{ userData.username }}</p>
-            <p v-else>Welcome {{ userData.username }}</p>
-        </div>`
-    })
+    data.error = req.query.error === "true";
 
-    renderToString(app).then((html) => {
-        res.send(`
-        <!DOCTYPE html>
-        <html>
-            <head>
-            <title>Vue SSR Example</title>
-            </head>
-            <body>
-            <div id="app">${html}</div>
-            </body>
-        </html>
-        `)
-    })
+    res.render("home", data);
+  } catch (error) {
+    res.render("home", { ...data, error: true });
+  }
 });
 
-//Start the express app on PORT 3000
-app.listen(3000, () => { console.log(`Server Started at PORT 3000`);});
+app.listen(PORT, () => {
+  console.log(`Server Started at PORT ${PORT}`);
+});
