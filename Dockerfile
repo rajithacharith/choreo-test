@@ -13,12 +13,7 @@ RUN npm install
 # Copy the application code to the working directory
 COPY . .
 
-# Create a non-root user
-RUN groupadd -r app && useradd -r -g app app
-
-# Set the ownership and permissions for the application files
-RUN chown -R app:app /app
-USER app
+USER 10140
 
 # Expose the port that the application will listen on
 EXPOSE 3000
