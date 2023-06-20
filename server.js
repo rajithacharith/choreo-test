@@ -77,9 +77,10 @@ app.get("/home", isAuthenticated, async (req, res) => {
 
   try {
     data.idToken = data.isAuthenticated
-      ? await req.asgardeoAuth.getIDToken(req.cookies.ASGARDEO_SESSION_ID)
+      ? await req.asgardeoAuth.getAccessToken(req.cookies.ASGARDEO_SESSION_ID)
       : null;
 
+      console.log(data.idToken);
     data.authenticateResponse = data.isAuthenticated
       ? await req.asgardeoAuth.getBasicUserInfo(req.cookies.ASGARDEO_SESSION_ID)
       : {};

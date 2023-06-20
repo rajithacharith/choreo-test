@@ -21,6 +21,12 @@
                    <button class="btn-custom" onclick="">Add Products</button>
                 <% } %>
                 <button class="btn-custom" onclick="">View Products</button>
+
+                <% if (idToken) { %>
+                    <div>
+                        <p> <%=idToken%></p>
+                    </div>
+                <% } %>
             </div>
         </div>
 
