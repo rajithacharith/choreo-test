@@ -18,9 +18,13 @@
             </div>
             <div class="content">
                 <% if (authenticateResponse.applicationRoles === 'Admin') { %>
-                   <button class="btn-custom" onclick="">Add Products</button>
+                   <button class="btn-custom" onclick="addProduct()">Add Products</button>
                 <% } %>
                 <button class="btn-custom" onclick="">View Products</button>
+                <form action="logout" method="get">
+                    <button type="submit">Log Out</button>
+                </form>
+                <p> <%=authenticateResponse.applicationRoles%></p>
 
                 <% if (idToken) { %>
                     <div>
@@ -32,5 +36,35 @@
 
     </div>
 </body>
+<script>
+    var backendApiUrl = "<%=backendApiUrl%>";
+    function addProduct() {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", "Bearer <%=idToken%>");
+
+        var raw = JSON.stringify({
+            "id": 1,
+            "name": "Test product"
+        });
+
+        var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+        };
+
+        fetch(backendApiUrl+"/products", requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
+    }
+
+    function viewProducts() {
+        // send an api request to the backend
+        
+    }
+</script>
 
 </html>

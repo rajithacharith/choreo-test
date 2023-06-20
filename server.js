@@ -73,7 +73,7 @@ const authCallback = (res, error) => {
 const isAuthenticated = AsgardeoExpressClient.protectRoute(authCallback);
 
 app.get("/home", isAuthenticated, async (req, res) => {
-  const data = { ...dataTemplate };
+  const data = { ...dataTemplate, backendApiUrl: process.env.BACKEND_API_URL || "http://localhost:5000" };
 
   try {
     data.idToken = data.isAuthenticated
