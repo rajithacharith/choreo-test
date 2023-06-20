@@ -3,6 +3,7 @@ const { AsgardeoExpressClient } = require("@asgardeo/auth-express");
 const cookieParser = require("cookie-parser");
 const express = require("express");
 const config = require("./config.json");
+const axios = require('axios');
 
 const PORT = 3000;
 
@@ -14,6 +15,8 @@ app.set("view engine", "ejs");
 
 app.use("/", express.static("static"));
 app.use("/home", express.static("static"));
+
+const backendApiUrl = process.env.BACKEND_API_URL || "http://localhost:5000";
 
 AsgardeoExpressClient.getInstance(config);
 
@@ -77,7 +80,7 @@ app.get("/home", isAuthenticated, async (req, res) => {
 
   try {
     data.idToken = data.isAuthenticated
-      ? await req.asgardeoAuth.getAccessToken(req.cookies.ASGARDEO_SESSION_ID)
+      ? await req.asgardeoAuth.getIDToken(req.cookies.ASGARDEO_SESSION_ID)
       : null;
 
       console.log(data.idToken);
@@ -91,6 +94,19 @@ app.get("/home", isAuthenticated, async (req, res) => {
   } catch (error) {
     res.render("home", { ...data, error: true });
   }
+});
+
+app.get("/products", isAuthenticated, async (req, res) => {
+  const data = { ...dataTemplate };
+  data.idToken = data.isAuthenticated
+      ? await req.asgardeoAuth.getAccessToken(req.cookies.ASGARDEO_SESSION_ID)
+      : null;
+  const response = await axios.get(`${backendApiUrl}/products`, {
+    headers: {
+      Authorization: `Bearer ${data.idToken}`
+    }
+  });
+  res.send(response.data);
 });
 
 app.listen(PORT, () => {

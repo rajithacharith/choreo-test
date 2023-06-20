@@ -17,20 +17,13 @@
             <div class="title">
             </div>
             <div class="content">
-                <% if (authenticateResponse.applicationRoles === 'Admin') { %>
+                <% if (authenticateResponse.applicationRoles.includes('Admin')) { %>
                    <button class="btn-custom" onclick="addProduct()">Add Products</button>
                 <% } %>
-                <button class="btn-custom" onclick="">View Products</button>
+                <button class="btn-custom" onclick="viewProducts()">View Products</button>
                 <form action="logout" method="get">
                     <button type="submit">Log Out</button>
                 </form>
-                <p> <%=authenticateResponse.applicationRoles%></p>
-
-                <% if (idToken) { %>
-                    <div>
-                        <p> <%=idToken%></p>
-                    </div>
-                <% } %>
             </div>
         </div>
 
@@ -62,7 +55,20 @@
     }
 
     function viewProducts() {
-        // send an api request to the backend
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", "Bearer <%=idToken%>");
+
+        var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+        };
+
+        fetch(backendApiUrl+"/products", requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
         
     }
 </script>
