@@ -101,12 +101,17 @@ app.get("/products", isAuthenticated, async (req, res) => {
   data.idToken = data.isAuthenticated
       ? await req.asgardeoAuth.getAccessToken(req.cookies.ASGARDEO_SESSION_ID)
       : null;
-  const response = await axios.get(`${backendApiUrl}/products`, {
-    headers: {
-      Authorization: `Bearer ${data.idToken}`
-    }
-  });
-  res.send(response.data);
+      try {
+        const response = await axios.get(`${backendApiUrl}/products`, {
+          headers: {
+            Authorization: `Bearer ${data.idToken}`
+          }
+        });
+        res.send(response.data);
+      } catch (error) {
+        console.log(error);
+        res.send(error);
+      }
 });
 
 app.listen(PORT, () => {
