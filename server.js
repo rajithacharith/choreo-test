@@ -98,13 +98,13 @@ app.get("/home", isAuthenticated, async (req, res) => {
 
 app.get("/products", isAuthenticated, async (req, res) => {
   const data = { ...dataTemplate };
-  data.idToken = data.isAuthenticated
+  const accessToken = data.isAuthenticated
       ? await req.asgardeoAuth.getAccessToken(req.cookies.ASGARDEO_SESSION_ID)
       : null;
       try {
         const response = await axios.get(`${backendApiUrl}/products`, {
           headers: {
-            Authorization: `Bearer ${data.idToken}`
+            Authorization: `Bearer ${accessToken}`
           }
         });
         res.send(response.data);
@@ -113,6 +113,24 @@ app.get("/products", isAuthenticated, async (req, res) => {
         res.send(error);
       }
 });
+
+app.post("/products", isAuthenticated, async (req, res) => {
+  const data = { ...dataTemplate };
+  const accessToken = data.isAuthenticated
+      ? await req.asgardeoAuth.getAccessToken(req.cookies.ASGARDEO_SESSION_ID)
+      : null;
+  try {
+    const response = await axios.post(`${backendApiUrl}/products`, req.body, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    res.send(response.data);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server Started at PORT ${PORT}`);
