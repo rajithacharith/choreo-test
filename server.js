@@ -8,7 +8,7 @@ const axios = require('axios');
 const PORT = 3000;
 
 const app = express();
-
+app.use(express.json());
 app.use(cookieParser());
 
 app.set("view engine", "ejs");
