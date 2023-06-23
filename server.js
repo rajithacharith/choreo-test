@@ -103,7 +103,8 @@ app.get("/products", isAuthenticated, async (req, res) => {
       try {
         const response = await axios.get(`${backendApiUrl}/products`, {
           headers: {
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}`,
+            'x-access-token': accessToken
           }
         });
         res.send(response.data);
