@@ -119,10 +119,12 @@ app.post("/products", isAuthenticated, async (req, res) => {
   const accessToken = data.isAuthenticated
       ? await req.asgardeoAuth.getAccessToken(req.cookies.ASGARDEO_SESSION_ID)
       : null;
+    console.log(accessToken);
   try {
     const response = await axios.post(`${backendApiUrl}/products`, req.body, {
       headers: {
-        Authorization: `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessToken}`,
+        'x-access-token': accessToken
       }
     });
     res.send(response.data);
